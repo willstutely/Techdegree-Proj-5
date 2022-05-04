@@ -4,7 +4,7 @@ Selecting HTML elements for use in JS
 const search = document.getElementsByClassName('search-container');
 const gallery = document.getElementById('gallery');
 const body = document.querySelector('body');
-const users = [];
+
 /* =================================
 Fetch data function and Fetch request
 ==================================== */
@@ -14,18 +14,29 @@ function fetchData(url) {
         .then(res => res.json())
         .then(data => data.results)
         .then(generateCard)
+        .catch(error => console.log("There has been a problem", error))
         
 }
 
 fetchData('https://randomuser.me/api/?results=12')
-console.log(users)
+
+/* =================================
+checkStatus function to check status of fetch request
+==================================== */
+function checkStatus(response){
+    if(response.ok) {
+        return Promise.resolve(response);
+    } else {
+        return Promise.reject(new Error(response.statusText));
+    }
+}
+
 /* =================================
 HTML generating functions for gallery and modal
 ==================================== */
 function generateCard(data) {
-    data.map(item => users.push(item))
     const card = data.map(item => `
-        <div class="card">
+        <div class="card" data-index="${data.indexOf(item)}">
             <div class="card-img-container">
                 <img class="card-img" src="${item.picture.large}" alt="profile picture">
             </div>
@@ -38,15 +49,23 @@ function generateCard(data) {
     `).join('');
     generateModal(data)
 
-    return gallery.insertAdjacentHTML('beforeend', card);
+    gallery.insertAdjacentHTML('beforeend', card);
+
+    // Create Click Event Listener for each card that displays the Modal for the clicked card
+    const cards = document.getElementsByClassName('card')
+    for (let i=0; i<cards.length; i++) {
+        cards[i].addEventListener('click', e => {
+            const index = cards[i].getAttribute('data-index');
+            displayModal(index)            
+        })
+    }
 }
 
 // the generateModal function needs to take a specific Object that is selected
 // when the user's card is clicked. 
 function generateModal(data) {
-
     const modal = data.map(item => `
-        <div class="modal-container">
+        <div class="modal-container" data-index=${data.indexOf(item)}>
             <div class="modal">
                 <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
                 <div class="modal-info-container">
@@ -66,51 +85,61 @@ function generateModal(data) {
             </div>
         </div>
     `).join('');
-    console.log(typeof modal)
-    return body.insertAdjacentHTML('beforeend', modal);
-}
-
-function displayModal(target) {
-    const nameModal = document.getElementsByClassName('modal-name cap');
-    const nameCard = document.getElementsByClassName('card-name cap');
     
-    const modalArray = Object.values(nameModal)
-                .map(text => text.innerText);
-    const cardArray = Object.values(nameCard)
-                .map(text => text.innerText)
-                
-    console.log(modalArray, cardArray)
+    body.insertAdjacentHTML('beforeend', modal);
 
-
-
-}
-
-/* =================================
-checkStatus function to check status of fetch request
-==================================== */
-function checkStatus(response){
-    if(response.ok) {
-        return Promise.resolve(response);
-    } else {
-        return Promise.reject(new Error(response.statusText));
+    // Select the generated Modals and set style.display to none
+    const modals = document.getElementsByClassName('modal-container');
+    for (let i=0; i<modals.length; i++) {
+        modals[i].style.display = 'none';
     }
 }
 
-/* =================================
-Event Listeners for creating/closing the modal
-==================================== */
-const cards = document.getElementsByClassName('card-info-container');
-console.log(Array.from(cards))
+function displayModal(input) {
+    const modal = document.getElementsByClassName('modal-container');
+    for (let i=0; i<modal.length; i++) {
+        const index = modal[i].getAttribute('data-index')
+        const activeModal = modal[index];
+        if (index === input) {
+            modal[index].style.display = 'block'
+            modalButtons(activeModal)
+        }
+    }
+}
 
-gallery.addEventListener('click', e => {
-    if (e.target.className.includes('card')) {
-        console.log(e.target.parentNode.innerText)
-    }   
-})
+function modalButtons(input) {
+    input.addEventListener('click', e => {
+        if (e.target.innerText === "X") {
+           input.style.display = "none";
+        } else if (e.target.innerText === "PREV") {
+            input.style.display = 'none';
+            prevModal(input)
+        } else if (e.target.innerText === "NEXT") {
+            input.style.display = 'none';
+            nextModal(input)
+        }
+    })
+}
 
-    
+function prevModal(input) {
+    const modal = document.getElementsByClassName('modal-container');
+    const prevModal = input.previousElementSibling.getAttribute('data-index')
+    if (input.dataset.index !== "0") {
+        displayModal(prevModal)
+    } else {
+        const newIndex = modal.length -1
+        displayModal(newIndex.toString())  
+    } 
+}
 
-
+function nextModal(input) {
+    if (input.dataset.index !== "11") {
+        const nextModal = input.nextElementSibling.getAttribute('data-index')
+        displayModal(nextModal)
+    } else {
+        displayModal("0")
+    }
+}
 
 
 
