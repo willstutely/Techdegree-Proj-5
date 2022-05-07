@@ -1,13 +1,19 @@
-/* ==================================
-Selecting HTML elements for use in JS
-===================================== */
+/** ====================================
+ * Selecting HTML elements for use in JS
+ ==================================== */
 const search = document.getElementsByClassName('search-container');
 const gallery = document.getElementById('gallery');
 const body = document.querySelector('body');
 
-/* =================================
-Fetch data function and Fetch request
-==================================== */
+/** ====================================================
+ * FETCH REQUEST and Card and Modal generating functions
+ ==================================================== */
+
+/**
+ * Function to generate a fetch() API request to obtain employee data
+ * @param {string} url 
+ * @returns - 
+ */
 function fetchData(url) {
     return fetch(url)
         .then(checkStatus)
@@ -18,12 +24,16 @@ function fetchData(url) {
         
 }
 
-fetchData('https://randomuser.me/api/?results=12')
+fetchData('https://randomuser.me/api/?results=12&nat=us')
 
-/* =================================
-checkStatus function to check status of fetch request
-==================================== */
+/**
+ * Function to check the status of the fetch request
+ * @param {object} response 
+ * @returns - a resolved Promise object or a rejected Promise object 
+ * with an Error object describing the reason for the rejection
+ */
 function checkStatus(response){
+    console.log(typeof response)
     if(response.ok) {
         return Promise.resolve(response);
     } else {
@@ -31,9 +41,19 @@ function checkStatus(response){
     }
 }
 
-/* =================================
-HTML generating functions for gallery and modal
-==================================== */
+/**
+ * Function the generate the employee cards using the fetched API data
+ * Uses interpolation to generate a template literal that is appended to the DOM
+ * via insertAdjacentHTML
+ * Creates eventListners for each card to be used to display Modals from each card
+ * 
+ * Thanks to Rachel Johnson on Slack for the suggestion of using data-index attributes
+ * on the cards and modals for specifying which card was selected and thus which modal
+ * needs to be displayed
+ * 
+ * @param {ojbect} data - the parsed JSON data obtained via fetch requst in the 
+ * fetchData() function
+ */
 function generateCard(data) {
     const card = data.map(item => `
         <div class="card" data-index="${data.indexOf(item)}">
@@ -48,10 +68,8 @@ function generateCard(data) {
         </div>
     `).join('');
     generateModal(data)
-
     gallery.insertAdjacentHTML('beforeend', card);
-
-    // Create Click Event Listener for each card that displays the Modal for the clicked card
+// Create Click Event Listener for each card that displays the Modal for the clicked card
     const cards = document.getElementsByClassName('card')
     for (let i=0; i<cards.length; i++) {
         cards[i].addEventListener('click', e => {
@@ -61,8 +79,19 @@ function generateCard(data) {
     }
 }
 
-// the generateModal function needs to take a specific Object that is selected
-// when the user's card is clicked. 
+/**
+ * Function to generate the employee Modals using the fetched API data
+ * Uses interpolation to generate a template literal that is appended to the DOM
+ * via insertAdjacentHTML
+ * The modals are created and initially set to a style.display value of "none" until
+ * the relevant card is clicked and the style.dipslay value is set to "block"
+ * 
+ * Thanks to Rachel Johnson on Slack for the suggestion of using data-index attributes
+ * on the cards and modals for specifying which card was selected and thus which modal
+ * needs to be displayed
+ * 
+ * @param {object} data 
+ */ 
 function generateModal(data) {
     const modal = data.map(item => `
         <div class="modal-container" data-index=${data.indexOf(item)}>
@@ -74,9 +103,9 @@ function generateModal(data) {
                     <p class="modal-text">${item.email}</p>
                     <p class="modal-text cap">${item.location.city}</p>
                     <hr>
-                    <p class="modal-text">(555) 555-5555</p>
-                    <p class="modal-text">${item.location.street.number} ${item.location.street.name}, ${item.location.city}, ${item.location.state} ${item.location.postalcode}</p>
-                    <p class="modal-text">Birthday: 10/21/2015</p>
+                    <p class="modal-text">${item.cell}</p>
+                    <p class="modal-text">${item.location.street.number} ${item.location.street.name}, ${item.location.city}, ${item.location.state} ${item.location.postcode}</p>
+                    <p class="modal-text">Birthday: ${item.dob.date.slice(5,7)}/${item.dob.date.slice(8,10)}/${item.dob.date.slice(0,4)}</p>
                 </div>
             </div>
             <div class="modal-btn-container">
@@ -85,15 +114,26 @@ function generateModal(data) {
             </div>
         </div>
     `).join('');
-    
     body.insertAdjacentHTML('beforeend', modal);
-
-    // Select the generated Modals and set style.display to none
+// Select the generated Modals and set style.display to none
     const modals = document.getElementsByClassName('modal-container');
     for (let i=0; i<modals.length; i++) {
         modals[i].style.display = 'none';
     }
 }
+
+/** =======================================
+ * Modal display and manipulation functions
+ ======================================= */
+
+/**
+ * Function to display Modal
+ * Called on 'click' eventListener or called when cycling through Modals
+ * Calls modalButtons() to generate eventListners on each button on the Modal
+ * 
+ * @param {string} input - Either the index of an event.target or an 
+ * index generated by prevModal() or nextModal()
+ */
 
 function displayModal(input) {
     const modal = document.getElementsByClassName('modal-container');
@@ -107,6 +147,14 @@ function displayModal(input) {
     }
 }
 
+/**
+ * Function to addEventListener to the Modal buttons
+ * Gets called by displayModal()
+ * Uses conditionals to check which button is clicked by identifying the innerText
+ * 
+ * @param {string} input - The index of the active Modal which is passed into it by
+ * the displayModal() function.
+ */
 function modalButtons(input) {
     input.addEventListener('click', e => {
         if (e.target.innerText === "X") {
@@ -121,6 +169,14 @@ function modalButtons(input) {
     })
 }
 
+/**
+ * Functions to close active Modal and display the Previous or Next Modal
+ * Called inside of the modalButtons() function
+ * 
+ * @param {string} input - Index of the activeModal in the displayModal() function
+ * This is used to allow for a continous loop of cycling through Modals. 
+ * The input parameter is handed down by the modalButtons() function
+ */
 function prevModal(input) {
     const modal = document.getElementsByClassName('modal-container');
     const prevModal = input.previousElementSibling.getAttribute('data-index')
