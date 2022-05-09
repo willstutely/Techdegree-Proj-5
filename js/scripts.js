@@ -1,9 +1,9 @@
 /** ====================================
  * Selecting HTML elements for use in JS
  ==================================== */
-const search = document.getElementsByClassName('search-container');
-const gallery = document.getElementById('gallery');
+const search = document.querySelector('.search-container');
 const body = document.querySelector('body');
+const gallery = document.getElementById('gallery');
 
 /** ====================================================
  * FETCH REQUEST and Card and Modal generating functions
@@ -12,7 +12,7 @@ const body = document.querySelector('body');
 /**
  * Function to generate a fetch() API request to obtain employee data
  * @param {string} url 
- * @returns - 
+ * @returns - Promise object
  */
 function fetchData(url) {
     return fetch(url)
@@ -20,11 +20,11 @@ function fetchData(url) {
         .then(res => res.json())
         .then(data => data.results)
         .then(generateCard)
-        .catch(error => console.log("There has been a problem", error))
-        
+        .catch(error => console.log("There has been a problem", error));
 }
 
-fetchData('https://randomuser.me/api/?results=12&nat=us')
+fetchData('https://randomuser.me/api/?results=12&nat=us');
+createSearch();
 
 /**
  * Function to check the status of the fetch request
@@ -33,7 +33,6 @@ fetchData('https://randomuser.me/api/?results=12&nat=us')
  * with an Error object describing the reason for the rejection
  */
 function checkStatus(response){
-    console.log(typeof response)
     if(response.ok) {
         return Promise.resolve(response);
     } else {
@@ -69,12 +68,15 @@ function generateCard(data) {
     `).join('');
     generateModal(data)
     gallery.insertAdjacentHTML('beforeend', card);
+
 // Create Click Event Listener for each card that displays the Modal for the clicked card
-    const cards = document.getElementsByClassName('card')
+    const cards = document.getElementsByClassName('card');
+// Call the performSearch() function to enable the eventListeners and conduct searches
+    performSearch(cards);
     for (let i=0; i<cards.length; i++) {
         cards[i].addEventListener('click', e => {
             const index = cards[i].getAttribute('data-index');
-            displayModal(index)            
+            displayModal(index);          
         })
     }
 }
@@ -122,6 +124,70 @@ function generateModal(data) {
     }
 }
 
+/** ======================================
+ * Search Feature
+ * Includes several functions to aid with
+ * creating and enabling a search feature
+======================================= */
+
+/**
+ * Function to generate the HTML for the Search bar
+ * Is called just after the fetchData() function
+ * 
+ * @returns - insertAdjacentHTML of the variable searchFunction
+ */
+function createSearch() {
+    const searchFunction = `
+    <form action="#" method="get">
+        <input type="search" id="search-input" class="search-input" placeholder="Search...">
+        <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+    </form> 
+    `;
+    return search.insertAdjacentHTML('beforeend', searchFunction);
+}
+
+/**
+ * Function to create eventListeners (submit and keyup) on the Search Form
+ * Gets called inside the generateCard() function
+ * 
+ * @param {object} - The HTMLCollection selected inside the generateCard() function
+ */
+function performSearch(info) {
+    const submit = document.querySelector('form');
+    const searchInput = document.getElementById('search-input');
+    submit.addEventListener('submit', e => {
+        searchFunction(info, searchInput);
+    })
+    submit.addEventListener('keyup', e => {
+        searchFunction(info, searchInput);
+    })
+};
+
+/**
+ * Function that iterates through each Card, selects and iterates 
+ * through the innerText of the descendent element with the 
+ * className "card-name cap" and compares it to the search field input.  
+ * If there is a match then the relevant cards are displayed.
+ * 
+ * Gets called inside the eventListeners in performSearch()
+ * 
+ * @param {object} - The HTMLCollection selected inside the generateCard() function
+ * that is passed into the performSearch() function 
+ * @param {string} - The search field input data 
+ */
+function searchFunction(info, input) {
+    for (let i=0; i<info.length; i++) {
+        const name = info[i].getElementsByClassName('card-name cap');
+        for (let j=0; j<name.length; j++) {
+            if (name[j].textContent.toLowerCase().includes(input.value.toLowerCase()) === false) {
+                info[i].style.display = "none";
+            } else {
+                info[i].style.display = "flex";
+            }
+        }
+    }
+};
+
 /** =======================================
  * Modal display and manipulation functions
  ======================================= */
@@ -138,14 +204,39 @@ function generateModal(data) {
 function displayModal(input) {
     const modal = document.getElementsByClassName('modal-container');
     for (let i=0; i<modal.length; i++) {
-        const index = modal[i].getAttribute('data-index')
+        const index = modal[i].getAttribute('data-index');
         const activeModal = modal[index];
         if (index === input) {
-            modal[index].style.display = 'block'
-            modalButtons(activeModal)
+            const actualModal = modal[i].getElementsByClassName('modal');
+            const buttonCont = modal[i].getElementsByClassName('modal-btn-container')
+            for (let j=0; j<actualModal.length; j++) {
+                modal[index].style.display = 'block';
+                actualModal[j].style.background = randomColor();
+                buttonCont[j].style.background = randomColor();
+                modalButtons(activeModal);
+            }
         }
     }
 }
+
+/**
+ * Function to generate a random color for style alteration
+ * Called inside the displayModal() function
+ * 
+ * @returns - a random color in the form of a hexadecimal string
+ */
+function randomColor() {
+    const colors = ["#F6E3CE", "#E0E0F8", "#E0F8E0", "#F5F6CE", "#A9D0F5", "#CEF6F5"];
+    const randomNumber = Math.floor(Math.random() * (colors.length - 1));
+    const randomColor = colors[randomNumber];
+    return randomColor;
+}
+
+  
+  
+  
+  
+  
 
 /**
  * Function to addEventListener to the Modal buttons
@@ -161,10 +252,10 @@ function modalButtons(input) {
            input.style.display = "none";
         } else if (e.target.innerText === "PREV") {
             input.style.display = 'none';
-            prevModal(input)
+            prevModal(input);
         } else if (e.target.innerText === "NEXT") {
             input.style.display = 'none';
-            nextModal(input)
+            nextModal(input);
         }
     })
 }
@@ -179,21 +270,21 @@ function modalButtons(input) {
  */
 function prevModal(input) {
     const modal = document.getElementsByClassName('modal-container');
-    const prevModal = input.previousElementSibling.getAttribute('data-index')
+    const prevModal = input.previousElementSibling.getAttribute('data-index');
     if (input.dataset.index !== "0") {
-        displayModal(prevModal)
+        displayModal(prevModal);
     } else {
         const newIndex = modal.length -1
-        displayModal(newIndex.toString())  
+        displayModal(newIndex.toString()) ; 
     } 
 }
 
 function nextModal(input) {
     if (input.dataset.index !== "11") {
-        const nextModal = input.nextElementSibling.getAttribute('data-index')
-        displayModal(nextModal)
+        const nextModal = input.nextElementSibling.getAttribute('data-index');
+        displayModal(nextModal);
     } else {
-        displayModal("0")
+        displayModal("0");
     }
 }
 
