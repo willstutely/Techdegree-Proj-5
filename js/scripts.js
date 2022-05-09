@@ -212,8 +212,11 @@ function displayModal(input) {
             const buttonCont = modal[i].getElementsByClassName('modal-btn-container')
             for (let j=0; j<actualModal.length; j++) {
                 modal[index].style.display = 'block';
-                actualModal[j].style.background = randomColor();
-                buttonCont[j].style.background = randomColor();
+                
+                const randomColoring = randomColor();
+                actualModal[j].style.background = randomColoring;
+                buttonCont[j].style.background = randomColoring;
+                
                 modalButtons(activeModal);
             }
         }
