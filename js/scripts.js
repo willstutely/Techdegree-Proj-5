@@ -1,18 +1,19 @@
-/** ====================================
+/** ==========================================================================================
  * Selecting HTML elements for use in JS
- ==================================== */
+ ============================================================================================= */
 const search = document.querySelector('.search-container');
 const body = document.querySelector('body');
 const gallery = document.getElementById('gallery');
 
-/** ====================================================
+/** ==========================================================================================
  * FETCH REQUEST and Card and Modal generating functions
- ==================================================== */
+ ============================================================================================= */
 
 /**
  * Function to generate a fetch() API request to obtain employee data
  * @param {string} url 
- * @returns - Promise object
+ * @returns - Promise object parsed into usable JSON data which is then used
+ * to call the generateCard function thereby populating the page
  */
 function fetchData(url) {
     return fetch(url)
@@ -41,7 +42,7 @@ function checkStatus(response){
 }
 
 /**
- * Function the generate the employee cards using the fetched API data
+ * Function to generate the employee cards using the fetched API data
  * Uses interpolation to generate a template literal that is appended to the DOM
  * via insertAdjacentHTML
  * Creates eventListners for each card to be used to display Modals from each card
@@ -124,11 +125,11 @@ function generateModal(data) {
     }
 }
 
-/** ======================================
+/** ==========================================================================================
  * Search Feature
  * Includes several functions to aid with
  * creating and enabling a search feature
-======================================= */
+============================================================================================== */
 
 /**
  * Function to generate the HTML for the Search bar
@@ -188,9 +189,9 @@ function searchFunction(info, input) {
     }
 };
 
-/** =======================================
+/** ==========================================================================================
  * Modal display and manipulation functions
- ======================================= */
+ ============================================================================================= */
 
 /**
  * Function to display Modal
@@ -221,6 +222,7 @@ function displayModal(input) {
 
 /**
  * Function to generate a random color for style alteration
+ * Color values were just picked at random from a color palette
  * Called inside the displayModal() function
  * 
  * @returns - a random color in the form of a hexadecimal string
@@ -231,12 +233,6 @@ function randomColor() {
     const randomColor = colors[randomNumber];
     return randomColor;
 }
-
-  
-  
-  
-  
-  
 
 /**
  * Function to addEventListener to the Modal buttons
