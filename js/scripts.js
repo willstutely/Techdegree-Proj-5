@@ -25,7 +25,6 @@ function fetchData(url) {
 }
 
 fetchData('https://randomuser.me/api/?results=12&nat=us');
-createSearch();
 
 /**
  * Function to check the status of the fetch request
@@ -69,6 +68,8 @@ function generateCard(data) {
     `).join('');
     generateModal(data)
     gallery.insertAdjacentHTML('beforeend', card);
+    createSearch();
+
 
 // Create Click Event Listener for each card that displays the Modal for the clicked card
     const cards = document.getElementsByClassName('card');
